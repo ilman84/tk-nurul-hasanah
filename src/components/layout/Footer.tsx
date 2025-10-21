@@ -128,14 +128,19 @@ export default function Footer() {
             transition={{ duration: 0.5 }}
           >
             <div className='flex items-center gap-3 mb-4'>
-              <div className='w-12 h-12 bg-gradient-to-br from-[#FFD6E8] to-[#FFEFD5] rounded-full flex items-center justify-center shadow-lg'>
-                <span className='text-2xl font-bold text-[#FF6B9D]'>N</span>
+              <div className='w-12 h-12 rounded-full overflow-hidden shadow-lg bg-white'>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src='/images/logo.png'
+                  alt='TK Nurul Hasanah Logo'
+                  className='w-full h-full object-cover'
+                />
               </div>
               <div>
                 <h3 className='text-lg font-bold text-gray-800'>
                   TK Nurul Hasanah
                 </h3>
-                <p className='text-xs text-gray-600'>Belajar & Bermain</p>
+                <p className='text-xs text-gray-600'>Giat Bersahaja</p>
               </div>
             </div>
             <p className='text-gray-700 text-sm leading-relaxed'>
