@@ -9,11 +9,11 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: 'TK Nurul Hasanah - Tempat Belajar dan Bermain dengan Ceria',
+  title: 'TK Nurul Hasanah - Giat Bersahaja',
   description:
-    'TK Nurul Hasanah adalah taman kanak-kanak yang menyediakan lingkungan belajar dan bermain yang menyenangkan untuk tumbuh kembang anak.',
+    'TK Nurul Hasanah adalah taman kanak-kanak yang menyediakan lingkungan belajar dan bermain yang menyenangkan untuk tumbuh kembang anak dengan motto Giat Bersahaja.',
   keywords:
-    'TK Nurul Hasanah, taman kanak-kanak, PAUD, pendidikan anak usia dini, sekolah TK',
+    'TK Nurul Hasanah, taman kanak-kanak, PAUD, pendidikan anak usia dini, sekolah TK, Giat Bersahaja',
 };
 
 export const viewport = {
@@ -29,8 +29,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang='id'>
-      <body className={`${poppins.variable} antialiased`}>{children}</body>
+    <html lang='id' className='overflow-x-hidden'>
+      <body className={`${poppins.variable} antialiased overflow-x-hidden`}>
+        {children}
+      </body>
     </html>
   );
 }
