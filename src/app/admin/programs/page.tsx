@@ -46,7 +46,6 @@ export default function ProgramManagement() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingProgram, setEditingProgram] = useState<Program | null>(null);
-  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -59,7 +58,6 @@ export default function ProgramManagement() {
 
   const loadPrograms = async () => {
     try {
-      setLoading(true);
       const data = await getPrograms();
       if (data && data.length > 0) {
         setPrograms(data);
@@ -74,8 +72,6 @@ export default function ProgramManagement() {
     } catch (error) {
       console.error('Error loading programs:', error);
       alert('Gagal memuat data. Periksa koneksi Supabase.');
-    } finally {
-      setLoading(false);
     }
   };
 

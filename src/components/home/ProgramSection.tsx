@@ -38,7 +38,7 @@ interface Program {
 }
 
 interface ProgramWithUI extends Program {
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   color: string;
 }
 
@@ -67,7 +67,9 @@ const defaultPrograms: Program[] = [
 ];
 
 // Mapping icon dan color berdasarkan kata kunci di judul
-const getIconAndColor = (title: string): { icon: any; color: string } => {
+const getIconAndColor = (
+  title: string
+): { icon: React.ComponentType<{ className?: string }>; color: string } => {
   const lowerTitle = title.toLowerCase();
 
   if (
