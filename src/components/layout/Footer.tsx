@@ -286,7 +286,7 @@ export default function Footer() {
               `© ${currentYear} TK Nurul Hasanah. All Rights Reserved.`}
           </p>
           <p className='text-xs text-gray-600 mt-1'>
-            Made with ❤️ for our lovely children
+            Made with ❤️ by Ilman F3/25 for our lovely children
           </p>
         </motion.div>
       </div>
