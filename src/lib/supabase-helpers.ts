@@ -34,15 +34,9 @@ type Program = {
   features: string[];
 };
 
-type Schedule = {
-  time: string;
-  activity: string;
+type Activity = {
+  title: string;
   description: string;
-};
-
-type WeeklySchedule = {
-  day: string;
-  activities: string[];
 };
 
 type Registration = {
@@ -266,10 +260,10 @@ export async function deleteProgram(id: number) {
   if (error) throw error;
 }
 
-// ===================== SCHEDULES =====================
-export async function getSchedules() {
+// ===================== WEEKLY ACTIVITIES =====================
+export async function getWeeklyActivities() {
   const { data, error } = await supabase
-    .from(TABLES.SCHEDULES)
+    .from(TABLES.WEEKLY_ACTIVITIES)
     .select('*')
     .order('created_at', { ascending: true });
 
@@ -277,20 +271,23 @@ export async function getSchedules() {
   return data || [];
 }
 
-export async function createSchedule(schedule: Schedule) {
+export async function createWeeklyActivity(activity: Activity) {
   const { data, error } = await supabase
-    .from(TABLES.SCHEDULES)
-    .insert([schedule])
+    .from(TABLES.WEEKLY_ACTIVITIES)
+    .insert([activity])
     .select();
 
   if (error) throw error;
   return data[0];
 }
 
-export async function updateSchedule(id: number, schedule: Partial<Schedule>) {
+export async function updateWeeklyActivity(
+  id: number,
+  activity: Partial<Activity>
+) {
   const { data, error } = await supabase
-    .from(TABLES.SCHEDULES)
-    .update({ ...schedule, updated_at: new Date().toISOString() })
+    .from(TABLES.WEEKLY_ACTIVITIES)
+    .update({ ...activity, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select();
 
@@ -298,35 +295,101 @@ export async function updateSchedule(id: number, schedule: Partial<Schedule>) {
   return data[0];
 }
 
-export async function deleteSchedule(id: number) {
-  const { error } = await supabase.from(TABLES.SCHEDULES).delete().eq('id', id);
+export async function deleteWeeklyActivity(id: number) {
+  const { error } = await supabase
+    .from(TABLES.WEEKLY_ACTIVITIES)
+    .delete()
+    .eq('id', id);
 
   if (error) throw error;
 }
 
-// ===================== WEEKLY SCHEDULES =====================
-export async function getWeeklySchedules() {
+// ===================== MONTHLY ACTIVITIES =====================
+export async function getMonthlyActivities() {
   const { data, error } = await supabase
-    .from(TABLES.WEEKLY_SCHEDULES)
+    .from(TABLES.MONTHLY_ACTIVITIES)
     .select('*')
-    .order('id', { ascending: true });
+    .order('created_at', { ascending: true });
 
   if (error) throw error;
   return data || [];
 }
 
-export async function updateWeeklySchedule(
+export async function createMonthlyActivity(activity: Activity) {
+  const { data, error } = await supabase
+    .from(TABLES.MONTHLY_ACTIVITIES)
+    .insert([activity])
+    .select();
+
+  if (error) throw error;
+  return data[0];
+}
+
+export async function updateMonthlyActivity(
   id: number,
-  schedule: Partial<WeeklySchedule>
+  activity: Partial<Activity>
 ) {
   const { data, error } = await supabase
-    .from(TABLES.WEEKLY_SCHEDULES)
-    .update({ ...schedule, updated_at: new Date().toISOString() })
+    .from(TABLES.MONTHLY_ACTIVITIES)
+    .update({ ...activity, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select();
 
   if (error) throw error;
   return data[0];
+}
+
+export async function deleteMonthlyActivity(id: number) {
+  const { error } = await supabase
+    .from(TABLES.MONTHLY_ACTIVITIES)
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+}
+
+// ===================== YEARLY ACTIVITIES =====================
+export async function getYearlyActivities() {
+  const { data, error } = await supabase
+    .from(TABLES.YEARLY_ACTIVITIES)
+    .select('*')
+    .order('created_at', { ascending: true });
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function createYearlyActivity(activity: Activity) {
+  const { data, error } = await supabase
+    .from(TABLES.YEARLY_ACTIVITIES)
+    .insert([activity])
+    .select();
+
+  if (error) throw error;
+  return data[0];
+}
+
+export async function updateYearlyActivity(
+  id: number,
+  activity: Partial<Activity>
+) {
+  const { data, error } = await supabase
+    .from(TABLES.YEARLY_ACTIVITIES)
+    .update({ ...activity, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select();
+
+  if (error) throw error;
+  return data[0];
+}
+
+export async function deleteYearlyActivity(id: number) {
+  const { error } = await supabase
+    .from(TABLES.YEARLY_ACTIVITIES)
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
 }
 
 // ===================== REGISTRATIONS =====================

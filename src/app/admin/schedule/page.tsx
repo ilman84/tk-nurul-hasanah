@@ -3,129 +3,106 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { FaClock, FaPlus, FaTrash, FaEdit, FaCalendar } from 'react-icons/fa';
 import {
-  getSchedules,
-  createSchedule,
-  updateSchedule,
-  deleteSchedule,
-  getWeeklySchedules,
-  updateWeeklySchedule,
+  FaCalendar,
+  FaPlus,
+  FaTrash,
+  FaEdit,
+  FaSave,
+  FaTimes,
+} from 'react-icons/fa';
+import {
+  getWeeklyActivities,
+  createWeeklyActivity,
+  updateWeeklyActivity,
+  deleteWeeklyActivity,
+  getMonthlyActivities,
+  createMonthlyActivity,
+  updateMonthlyActivity,
+  deleteMonthlyActivity,
+  getYearlyActivities,
+  createYearlyActivity,
+  updateYearlyActivity,
+  deleteYearlyActivity,
 } from '@/lib/supabase-helpers';
 
-interface Schedule {
+interface Activity {
   id: string | number;
-  time: string;
-  activity: string;
+  title: string;
   description: string;
 }
 
-interface WeeklySchedule {
-  id?: string | number;
-  day: string;
-  activities: string[];
-}
+type ActivityType = 'weekly' | 'monthly' | 'yearly';
 
 export default function AdminSchedule() {
-  const [activeTab, setActiveTab] = useState<'daily' | 'weekly'>('daily');
-  const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [weeklySchedule, setWeeklySchedule] = useState<WeeklySchedule[]>([]);
+  const [activeTab, setActiveTab] = useState<ActivityType>('weekly');
+  const [weeklyActivities, setWeeklyActivities] = useState<Activity[]>([]);
+  const [monthlyActivities, setMonthlyActivities] = useState<Activity[]>([]);
+  const [yearlyActivities, setYearlyActivities] = useState<Activity[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | number | null>(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
-    time: '',
-    activity: '',
+    title: '',
     description: '',
-  });
-  const [editingDay, setEditingDay] = useState<string | null>(null);
-  const [editingDayId, setEditingDayId] = useState<string | number | null>(
-    null
-  );
-  const [weeklyFormData, setWeeklyFormData] = useState({
-    day: '',
-    activities: [''],
   });
 
   useEffect(() => {
-    loadSchedules();
-    loadWeeklySchedules();
+    loadAllActivities();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const loadSchedules = async () => {
+  const loadAllActivities = async () => {
     try {
       setLoading(true);
-      const data = await getSchedules();
-      if (data && data.length > 0) {
-        setSchedules(data);
-      } else {
-        // Insert default schedules if empty
-        const defaultSchedules = [
-          {
-            time: '07.00 - 07.30',
-            activity: 'Penyambutan & Bermain Bebas',
-            description: 'Siswa disambut dan bermain bebas di playground',
-          },
-          {
-            time: '07.30 - 08.00',
-            activity: 'Circle Time & Doa',
-            description: 'Pembukaan, doa bersama, dan pengenalan tema',
-          },
-          {
-            time: '08.00 - 09.30',
-            activity: 'Kegiatan Inti',
-            description: 'Aktivitas belajar utama sesuai tema harian',
-          },
-          {
-            time: '09.30 - 10.00',
-            activity: 'Snack Time & Istirahat',
-            description: 'Makan snack dan istirahat',
-          },
-          {
-            time: '10.00 - 11.00',
-            activity: 'Kegiatan Lanjutan',
-            description: 'Kegiatan tambahan atau praktik',
-          },
-          {
-            time: '11.00 - 11.30',
-            activity: 'Penutup & Doa',
-            description: 'Review kegiatan hari ini dan doa penutup',
-          },
-        ];
-        for (const schedule of defaultSchedules) {
-          await createSchedule(schedule);
-        }
-        const newData = await getSchedules();
-        setSchedules(newData);
-      }
+      await Promise.all([
+        loadWeeklyActivities(),
+        loadMonthlyActivities(),
+        loadYearlyActivities(),
+      ]);
     } catch (error) {
-      console.error('Error loading schedules:', error);
-      alert('Gagal memuat jadwal. Periksa koneksi Supabase.');
+      console.error('Error loading activities:', error);
+      alert('Gagal memuat kegiatan. Periksa koneksi Supabase.');
     } finally {
       setLoading(false);
     }
   };
 
-  const loadWeeklySchedules = async () => {
+  const loadWeeklyActivities = async () => {
     try {
-      const data = await getWeeklySchedules();
-      if (data && data.length > 0) {
-        setWeeklySchedule(data);
-      } else {
-        // Data default akan di-insert melalui SQL schema
-        setWeeklySchedule([
-          {
-            day: 'Senin',
-            activities: ['Upacara', 'Pembelajaran Dasar', 'Seni'],
-          },
-          { day: 'Selasa', activities: ['Olahraga', 'Matematika', 'Musik'] },
-          { day: 'Rabu', activities: ['Bahasa', 'Kreativitas', 'Bermain'] },
-          { day: 'Kamis', activities: ['Sains', 'Tari', 'Storytelling'] },
-          { day: 'Jumat', activities: ['Agama', 'Olahraga', 'Praktik'] },
-        ]);
-      }
+      const data = await getWeeklyActivities();
+      setWeeklyActivities(data || []);
     } catch (error) {
-      console.error('Error loading weekly schedules:', error);
+      console.error('Error loading weekly activities:', error);
+    }
+  };
+
+  const loadMonthlyActivities = async () => {
+    try {
+      const data = await getMonthlyActivities();
+      setMonthlyActivities(data || []);
+    } catch (error) {
+      console.error('Error loading monthly activities:', error);
+    }
+  };
+
+  const loadYearlyActivities = async () => {
+    try {
+      const data = await getYearlyActivities();
+      setYearlyActivities(data || []);
+    } catch (error) {
+      console.error('Error loading yearly activities:', error);
+    }
+  };
+
+  const getCurrentActivities = () => {
+    switch (activeTab) {
+      case 'weekly':
+        return weeklyActivities;
+      case 'monthly':
+        return monthlyActivities;
+      case 'yearly':
+        return yearlyActivities;
     }
   };
 
@@ -133,97 +110,107 @@ export default function AdminSchedule() {
     e.preventDefault();
 
     try {
+      const activityData = {
+        title: formData.title,
+        description: formData.description,
+      };
+
       if (editingId) {
-        await updateSchedule(Number(editingId), formData);
+        // Update existing activity
+        switch (activeTab) {
+          case 'weekly':
+            await updateWeeklyActivity(Number(editingId), activityData);
+            await loadWeeklyActivities();
+            break;
+          case 'monthly':
+            await updateMonthlyActivity(Number(editingId), activityData);
+            await loadMonthlyActivities();
+            break;
+          case 'yearly':
+            await updateYearlyActivity(Number(editingId), activityData);
+            await loadYearlyActivities();
+            break;
+        }
+        alert('Kegiatan berhasil diupdate!');
       } else {
-        await createSchedule(formData);
+        // Create new activity
+        switch (activeTab) {
+          case 'weekly':
+            await createWeeklyActivity(activityData);
+            await loadWeeklyActivities();
+            break;
+          case 'monthly':
+            await createMonthlyActivity(activityData);
+            await loadMonthlyActivities();
+            break;
+          case 'yearly':
+            await createYearlyActivity(activityData);
+            await loadYearlyActivities();
+            break;
+        }
+        alert('Kegiatan berhasil ditambahkan!');
       }
 
-      await loadSchedules();
-      setFormData({ time: '', activity: '', description: '' });
+      setFormData({ title: '', description: '' });
       setIsEditing(false);
       setEditingId(null);
-      alert(
-        editingId ? 'Jadwal berhasil diupdate!' : 'Jadwal berhasil ditambahkan!'
-      );
     } catch (error) {
-      console.error('Error saving schedule:', error);
-      alert('Gagal menyimpan jadwal. Periksa koneksi Supabase.');
+      console.error('Error saving activity:', error);
+      alert('Gagal menyimpan kegiatan. Periksa koneksi Supabase.');
     }
   };
 
-  const handleEdit = (schedule: Schedule) => {
+  const handleEdit = (activity: Activity) => {
     setFormData({
-      time: schedule.time,
-      activity: schedule.activity,
-      description: schedule.description,
+      title: activity.title,
+      description: activity.description,
     });
-    setEditingId(schedule.id);
+    setEditingId(activity.id);
     setIsEditing(true);
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (id: string | number) => {
-    if (confirm('Apakah Anda yakin ingin menghapus jadwal ini?')) {
+    if (confirm('Apakah Anda yakin ingin menghapus kegiatan ini?')) {
       try {
-        await deleteSchedule(Number(id));
-        await loadSchedules();
-        alert('Jadwal berhasil dihapus!');
+        switch (activeTab) {
+          case 'weekly':
+            await deleteWeeklyActivity(Number(id));
+            await loadWeeklyActivities();
+            break;
+          case 'monthly':
+            await deleteMonthlyActivity(Number(id));
+            await loadMonthlyActivities();
+            break;
+          case 'yearly':
+            await deleteYearlyActivity(Number(id));
+            await loadYearlyActivities();
+            break;
+        }
+        alert('Kegiatan berhasil dihapus!');
       } catch (error) {
-        console.error('Error deleting schedule:', error);
-        alert('Gagal menghapus jadwal. Periksa koneksi Supabase.');
+        console.error('Error deleting activity:', error);
+        alert('Gagal menghapus kegiatan. Periksa koneksi Supabase.');
       }
     }
   };
 
-  // Weekly schedule handlers
-  const handleEditWeekly = (day: string) => {
-    const schedule = weeklySchedule.find((s) => s.day === day);
-    if (schedule) {
-      setWeeklyFormData({
-        day: schedule.day,
-        activities: [...schedule.activities],
-      });
-      setEditingDay(day);
-      setEditingDayId(schedule.id || null);
+  const handleCancel = () => {
+    setFormData({ title: '', description: '' });
+    setIsEditing(false);
+    setEditingId(null);
+  };
+
+  const getTabLabel = (type: ActivityType) => {
+    switch (type) {
+      case 'weekly':
+        return 'Kegiatan Mingguan';
+      case 'monthly':
+        return 'Kegiatan Bulanan';
+      case 'yearly':
+        return 'Kegiatan Tahunan';
     }
-  };
-
-  const handleSaveWeekly = async () => {
-    try {
-      if (editingDayId) {
-        await updateWeeklySchedule(Number(editingDayId), {
-          activities: weeklyFormData.activities.filter((a) => a.trim() !== ''),
-        });
-        await loadWeeklySchedules();
-        alert('Jadwal mingguan berhasil diupdate!');
-      }
-      setEditingDay(null);
-      setEditingDayId(null);
-      setWeeklyFormData({ day: '', activities: [''] });
-    } catch (error) {
-      console.error('Error saving weekly schedule:', error);
-      alert('Gagal menyimpan jadwal mingguan. Periksa koneksi Supabase.');
-    }
-  };
-
-  const handleAddActivity = () => {
-    setWeeklyFormData({
-      ...weeklyFormData,
-      activities: [...weeklyFormData.activities, ''],
-    });
-  };
-
-  const handleRemoveActivity = (index: number) => {
-    setWeeklyFormData({
-      ...weeklyFormData,
-      activities: weeklyFormData.activities.filter((_, i) => i !== index),
-    });
-  };
-
-  const handleActivityChange = (index: number, value: string) => {
-    const newActivities = [...weeklyFormData.activities];
-    newActivities[index] = value;
-    setWeeklyFormData({ ...weeklyFormData, activities: newActivities });
   };
 
   return (
@@ -237,231 +224,252 @@ export default function AdminSchedule() {
           <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6'>
             <div>
               <h1 className='text-2xl md:text-3xl font-bold text-gray-800 mb-2'>
-                Jadwal Kegiatan
+                Kelola Kegiatan
               </h1>
               <p className='text-sm md:text-base text-gray-600'>
-                Kelola jadwal kegiatan harian dan mingguan siswa
+                Kelola kegiatan mingguan, bulanan, dan tahunan
               </p>
             </div>
-            {activeTab === 'daily' && (
-              <button
-                onClick={() => {
-                  setIsEditing(!isEditing);
-                  if (isEditing) {
-                    setFormData({ time: '', activity: '', description: '' });
-                    setEditingId(null);
-                  }
-                }}
-                className='flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all whitespace-nowrap'
-              >
-                <FaPlus size={16} />
-                <span>{isEditing ? 'Batal' : 'Tambah Jadwal'}</span>
-              </button>
-            )}
+            <button
+              onClick={() => {
+                setIsEditing(!isEditing);
+                if (isEditing) {
+                  handleCancel();
+                }
+              }}
+              className='flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all whitespace-nowrap'
+            >
+              {isEditing ? (
+                <>
+                  <FaTimes size={16} />
+                  <span>Batal</span>
+                </>
+              ) : (
+                <>
+                  <FaPlus size={16} />
+                  <span>Tambah Kegiatan</span>
+                </>
+              )}
+            </button>
           </div>
 
           {/* Tabs */}
-          <div className='flex gap-2 mb-6 border-b-2 border-gray-200'>
-            <button
-              onClick={() => setActiveTab('daily')}
-              className={`flex items-center gap-2 px-6 py-3 font-semibold transition-all ${
-                activeTab === 'daily'
-                  ? 'text-[#FF6B9D] border-b-2 border-[#FF6B9D] -mb-0.5'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <FaClock />
-              <span>Jam Kegiatan Harian</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('weekly')}
-              className={`flex items-center gap-2 px-6 py-3 font-semibold transition-all ${
-                activeTab === 'weekly'
-                  ? 'text-[#FF6B9D] border-b-2 border-[#FF6B9D] -mb-0.5'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <FaCalendar />
-              <span>Jadwal Mingguan</span>
-            </button>
+          <div className='flex gap-2 mb-6 border-b-2 border-gray-200 overflow-x-auto'>
+            {(['weekly', 'monthly', 'yearly'] as ActivityType[]).map((type) => (
+              <button
+                key={type}
+                onClick={() => setActiveTab(type)}
+                className={`flex items-center gap-2 px-4 md:px-6 py-3 font-semibold transition-all whitespace-nowrap ${
+                  activeTab === type
+                    ? 'text-[#FF6B9D] border-b-2 border-[#FF6B9D] -mb-0.5'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <FaCalendar />
+                <span>{getTabLabel(type)}</span>
+              </button>
+            ))}
           </div>
 
-          {/* Daily Schedule Content */}
-          {activeTab === 'daily' && (
-            <>
-              {/* Loading State */}
-              {loading && (
-                <div className='text-center py-12'>
-                  <div className='inline-block w-12 h-12 border-4 border-[#FF6B9D] border-t-transparent rounded-full animate-spin'></div>
-                  <p className='mt-4 text-gray-600'>Memuat jadwal...</p>
+          {/* Loading State */}
+          {loading && (
+            <div className='text-center py-12'>
+              <div className='inline-block w-12 h-12 border-4 border-[#FF6B9D] border-t-transparent rounded-full animate-spin'></div>
+              <p className='mt-4 text-gray-600'>Memuat kegiatan...</p>
+            </div>
+          )}
+
+          {/* Form */}
+          {!loading && isEditing && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className='bg-white rounded-2xl shadow-lg p-4 md:p-6 mb-6'
+            >
+              <h2 className='text-lg md:text-xl font-bold text-gray-800 mb-4'>
+                {editingId
+                  ? 'Edit Kegiatan'
+                  : `Tambah ${getTabLabel(activeTab)}`}
+              </h2>
+              <form onSubmit={handleSubmit} className='space-y-4'>
+                <div>
+                  <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                    Judul Kegiatan
+                  </label>
+                  <input
+                    type='text'
+                    value={formData.title}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
+                    required
+                    className='w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:border-[#FF6B9D] focus:outline-none transition-colors'
+                    placeholder='Masukkan judul kegiatan'
+                  />
                 </div>
-              )}
+                <div>
+                  <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                    Deskripsi
+                  </label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        description: e.target.value,
+                      })
+                    }
+                    required
+                    rows={4}
+                    className='w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:border-[#FF6B9D] focus:outline-none transition-colors resize-none'
+                    placeholder='Masukkan deskripsi kegiatan...'
+                  />
+                </div>
+                <div className='flex gap-3'>
+                  <button
+                    type='submit'
+                    className='flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all'
+                  >
+                    <FaSave />
+                    <span>
+                      {editingId ? 'Update Kegiatan' : 'Simpan Kegiatan'}
+                    </span>
+                  </button>
+                  <button
+                    type='button'
+                    onClick={handleCancel}
+                    className='px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-bold rounded-xl transition-all'
+                  >
+                    Batal
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          )}
 
-              {/* Form */}
-              {!loading && isEditing && (
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className='bg-white rounded-2xl shadow-lg p-4 md:p-6 mb-6'
-                >
-                  <h2 className='text-lg md:text-xl font-bold text-gray-800 mb-4'>
-                    {editingId ? 'Edit Jadwal' : 'Tambah Jadwal Baru'}
-                  </h2>
-                  <form onSubmit={handleSubmit} className='space-y-4'>
-                    <div>
-                      <label className='block text-sm font-semibold text-gray-700 mb-2'>
-                        Waktu
-                      </label>
-                      <input
-                        type='text'
-                        value={formData.time}
-                        onChange={(e) =>
-                          setFormData({ ...formData, time: e.target.value })
-                        }
-                        required
-                        className='w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:border-[#FF6B9D] focus:outline-none transition-colors'
-                        placeholder='Contoh: 07.00 - 08.00'
-                      />
-                    </div>
-                    <div>
-                      <label className='block text-sm font-semibold text-gray-700 mb-2'>
-                        Nama Kegiatan
-                      </label>
-                      <input
-                        type='text'
-                        value={formData.activity}
-                        onChange={(e) =>
-                          setFormData({ ...formData, activity: e.target.value })
-                        }
-                        required
-                        className='w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:border-[#FF6B9D] focus:outline-none transition-colors'
-                        placeholder='Nama kegiatan'
-                      />
-                    </div>
-                    <div>
-                      <label className='block text-sm font-semibold text-gray-700 mb-2'>
-                        Deskripsi
-                      </label>
-                      <textarea
-                        value={formData.description}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            description: e.target.value,
-                          })
-                        }
-                        required
-                        rows={3}
-                        className='w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:border-[#FF6B9D] focus:outline-none transition-colors resize-none'
-                        placeholder='Deskripsi kegiatan...'
-                      />
-                    </div>
-                    <button
-                      type='submit'
-                      className='w-full py-3 bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all'
-                    >
-                      {editingId ? 'Update Jadwal' : 'Simpan Jadwal'}
-                    </button>
-                  </form>
-                </motion.div>
-              )}
-
-              {/* Schedule List - Desktop Table View */}
-              {!loading && (
-                <div className='hidden md:block bg-white rounded-2xl shadow-lg overflow-hidden'>
-                  <div className='overflow-x-auto'>
-                    <table className='w-full'>
-                      <thead className='bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3]'>
-                        <tr>
-                          <th className='px-4 py-3 text-left text-white text-sm font-semibold'>
-                            Waktu
-                          </th>
-                          <th className='px-4 py-3 text-left text-white text-sm font-semibold'>
-                            Kegiatan
-                          </th>
-                          <th className='px-4 py-3 text-left text-white text-sm font-semibold'>
-                            Deskripsi
-                          </th>
-                          <th className='px-4 py-3 text-center text-white text-sm font-semibold'>
-                            Aksi
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {schedules.map((schedule, index) => (
+          {/* Activities List */}
+          {!loading && (
+            <>
+              {/* Desktop View */}
+              <div className='hidden md:block bg-white rounded-2xl shadow-lg overflow-hidden'>
+                <div className='overflow-x-auto'>
+                  <table className='w-full'>
+                    <thead className='bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3]'>
+                      <tr>
+                        <th className='px-4 py-3 text-left text-white text-sm font-semibold w-16'>
+                          No.
+                        </th>
+                        <th className='px-4 py-3 text-left text-white text-sm font-semibold'>
+                          Judul Kegiatan
+                        </th>
+                        <th className='px-4 py-3 text-left text-white text-sm font-semibold'>
+                          Deskripsi
+                        </th>
+                        <th className='px-4 py-3 text-center text-white text-sm font-semibold w-32'>
+                          Aksi
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {getCurrentActivities().length > 0 ? (
+                        getCurrentActivities().map((activity, index) => (
                           <tr
-                            key={schedule.id}
+                            key={activity.id}
                             className={
                               index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
                             }
                           >
-                            <td className='px-4 py-3 text-sm text-gray-800 font-medium whitespace-nowrap'>
-                              {schedule.time}
+                            <td className='px-4 py-3 text-sm text-gray-600 font-medium'>
+                              {index + 1}
                             </td>
                             <td className='px-4 py-3 text-sm text-gray-800 font-semibold'>
-                              {schedule.activity}
+                              {activity.title || (
+                                <em className='text-gray-400'>Belum diisi</em>
+                              )}
                             </td>
                             <td className='px-4 py-3 text-sm text-gray-600'>
-                              {schedule.description}
+                              {activity.description || (
+                                <em className='text-gray-400'>Belum diisi</em>
+                              )}
                             </td>
                             <td className='px-4 py-3'>
                               <div className='flex items-center justify-center gap-2'>
                                 <button
-                                  onClick={() => handleEdit(schedule)}
+                                  onClick={() => handleEdit(activity)}
                                   className='p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors'
+                                  title='Edit'
                                 >
                                   <FaEdit size={14} />
                                 </button>
                                 <button
-                                  onClick={() => handleDelete(schedule.id)}
+                                  onClick={() => handleDelete(activity.id)}
                                   className='p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors'
+                                  title='Hapus'
                                 >
                                   <FaTrash size={14} />
                                 </button>
                               </div>
                             </td>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        ))
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan={4}
+                            className='px-4 py-12 text-center text-gray-500'
+                          >
+                            <FaCalendar
+                              size={48}
+                              className='mx-auto text-gray-300 mb-4'
+                            />
+                            <p>
+                              Belum ada kegiatan. Klik &quot;Tambah
+                              Kegiatan&quot; untuk menambahkan.
+                            </p>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
-              )}
+              </div>
 
-              {/* Schedule List - Mobile Card View */}
-              {!loading && (
-                <div className='md:hidden space-y-4'>
-                  {schedules.map((schedule, index) => (
+              {/* Mobile View */}
+              <div className='md:hidden space-y-4'>
+                {getCurrentActivities().length > 0 ? (
+                  getCurrentActivities().map((activity, index) => (
                     <motion.div
-                      key={schedule.id}
+                      key={activity.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
                       className='bg-white rounded-xl shadow-lg p-4'
                     >
-                      <div className='flex items-start justify-between mb-3'>
-                        <div className='flex-1'>
-                          <div className='text-xs font-bold text-[#FF6B9D] mb-1'>
-                            {schedule.time}
-                          </div>
-                          <h3 className='text-base font-bold text-gray-800 mb-1'>
-                            {schedule.activity}
-                          </h3>
-                          <p className='text-sm text-gray-600'>
-                            {schedule.description}
-                          </p>
+                      <div className='mb-3'>
+                        <div className='text-xs font-bold text-[#FF6B9D] mb-1'>
+                          Kegiatan #{index + 1}
                         </div>
+                        <h3 className='text-base font-bold text-gray-800 mb-2'>
+                          {activity.title || (
+                            <em className='text-gray-400'>Belum diisi</em>
+                          )}
+                        </h3>
+                        <p className='text-sm text-gray-600'>
+                          {activity.description || (
+                            <em className='text-gray-400'>Belum diisi</em>
+                          )}
+                        </p>
                       </div>
                       <div className='flex gap-2 pt-3 border-t border-gray-100'>
                         <button
-                          onClick={() => handleEdit(schedule)}
+                          onClick={() => handleEdit(activity)}
                           className='flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-lg transition-colors'
                         >
                           <FaEdit size={14} />
                           <span>Edit</span>
                         </button>
                         <button
-                          onClick={() => handleDelete(schedule.id)}
+                          onClick={() => handleDelete(activity.id)}
                           className='flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors'
                         >
                           <FaTrash size={14} />
@@ -469,107 +477,21 @@ export default function AdminSchedule() {
                         </button>
                       </div>
                     </motion.div>
-                  ))}
-                </div>
-              )}
-
-              {!loading && schedules.length === 0 && (
-                <div className='text-center py-12 bg-white rounded-2xl shadow-lg'>
-                  <FaClock size={48} className='mx-auto text-gray-300 mb-4' />
-                  <p className='text-gray-500'>
-                    Belum ada jadwal. Klik &quot;Tambah Jadwal&quot; untuk
-                    menambahkan.
-                  </p>
-                </div>
-              )}
-            </>
-          )}
-
-          {/* Weekly Schedule Content */}
-          {activeTab === 'weekly' && (
-            <div className='space-y-6'>
-              {weeklySchedule.map((schedule) => (
-                <motion.div
-                  key={schedule.day}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className='bg-white rounded-2xl shadow-lg p-6'
-                >
-                  <div className='flex items-center justify-between mb-4'>
-                    <h3 className='text-xl font-bold text-gray-800'>
-                      {schedule.day}
-                    </h3>
-                    <button
-                      onClick={() => handleEditWeekly(schedule.day)}
-                      className='flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors'
-                    >
-                      <FaEdit size={14} />
-                      <span>Edit</span>
-                    </button>
+                  ))
+                ) : (
+                  <div className='text-center py-12 bg-white rounded-2xl shadow-lg'>
+                    <FaCalendar
+                      size={48}
+                      className='mx-auto text-gray-300 mb-4'
+                    />
+                    <p className='text-gray-500'>
+                      Belum ada kegiatan. Klik &quot;Tambah Kegiatan&quot; untuk
+                      menambahkan.
+                    </p>
                   </div>
-
-                  {editingDay === schedule.day ? (
-                    <div className='space-y-3'>
-                      {weeklyFormData.activities.map((activity, index) => (
-                        <div key={index} className='flex gap-2'>
-                          <input
-                            type='text'
-                            value={activity}
-                            onChange={(e) =>
-                              handleActivityChange(index, e.target.value)
-                            }
-                            placeholder='Nama aktivitas'
-                            className='flex-1 px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-[#FF6B9D] focus:outline-none'
-                          />
-                          <button
-                            onClick={() => handleRemoveActivity(index)}
-                            className='p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors'
-                            disabled={weeklyFormData.activities.length === 1}
-                          >
-                            <FaTrash size={14} />
-                          </button>
-                        </div>
-                      ))}
-                      <div className='flex gap-2 pt-2'>
-                        <button
-                          onClick={handleAddActivity}
-                          className='flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors'
-                        >
-                          <FaPlus size={14} />
-                          <span>Tambah Aktivitas</span>
-                        </button>
-                        <button
-                          onClick={handleSaveWeekly}
-                          className='flex items-center gap-2 px-4 py-2 bg-[#FF6B9D] hover:bg-[#FF8FB3] text-white rounded-lg transition-colors'
-                        >
-                          Simpan
-                        </button>
-                        <button
-                          onClick={() => {
-                            setEditingDay(null);
-                            setWeeklyFormData({ day: '', activities: [''] });
-                          }}
-                          className='flex items-center gap-2 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors'
-                        >
-                          Batal
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className='flex flex-wrap gap-2'>
-                      {schedule.activities.map((activity, index) => (
-                        <span
-                          key={index}
-                          className='px-4 py-2 bg-[#FFD6E8] rounded-full text-sm font-medium text-gray-700'
-                        >
-                          {activity}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </motion.div>
-              ))}
-            </div>
+                )}
+              </div>
+            </>
           )}
         </motion.div>
       </div>
